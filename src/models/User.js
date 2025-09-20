@@ -32,12 +32,11 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// Compare candidate password with hashed password
-userSchema.method.comparePasssword = async function (candidatePassword) {
+// ✅ Compare candidate password with hashed password
+userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
 // Create and export model
 const User = mongoose.model("User", userSchema);
-
-model.export = User;
+module.exports = User;
