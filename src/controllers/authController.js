@@ -29,9 +29,16 @@ exports.register = async (req, res) => {
     }, 201);
 
   } catch (err) {
-    console.error(err);
-    return errorResponse(res, "Server error", 500);
+  console.error(err);
+
+  if (err.name === "ValidationError") {
+    const messages = Object.values(err.errors).map(val => val.message);
+    return errorResponse(res, messages, 400);
   }
+
+  return errorResponse(res, "Server error", 500);
+}
+
 };
 
 // Login

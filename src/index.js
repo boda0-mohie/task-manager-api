@@ -38,11 +38,11 @@ const uri = `mongodb+srv://${DB_USER}:${encodedPass}@${DB_HOST}/${DB_NAME}?retry
 // Connect to MongoDB
 mongoose.connect(uri)
   .then(() => {
-    console.log('✅ MongoDB Connected');
+    console.log(' MongoDB Connected');
     app.listen(PORT, () => {
-      console.log(`✅ Server running on http://localhost:${PORT}`);
+      console.log(` Server running on http://localhost:${PORT}`);
     });
   })
   .catch((err) => {
-    console.error('❌ DB Connection Error:', err.message);
+    console.error(' DB Connection Error:', err.message);
   });
