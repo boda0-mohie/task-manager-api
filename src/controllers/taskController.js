@@ -1,32 +1,40 @@
 const Task = require("../models/Task");
+const { successResponse, errorResponse } = require("../utils/response");
 
+// Create Task
 exports.createTask = async (req, res) => {
   try {
     const { title, description } = req.body;
 
+    if (!title) {
+      return errorResponse(res, "Title is required", 400);
+    }
+
     const task = await Task.create({
       title,
       description,
-      user: req.user._id,   
+      user: req.user._id,
     });
 
-    res.status(201).json(task);
+    return successResponse(res, task, 201);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return errorResponse(res, "Server error", 500);
   }
 };
 
+// Get User's Tasks
 exports.getTasks = async (req, res) => {
   try {
     const tasks = await Task.find({ user: req.user._id });
-    res.status(200).json(tasks);
+    return successResponse(res, tasks, 200);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return errorResponse(res, "Server error", 500);
   }
 };
 
+// Update Task
 exports.updateTask = async (req, res) => {
   try {
     const { id } = req.params;
@@ -36,11 +44,30 @@ exports.updateTask = async (req, res) => {
       { new: true }
     );
 
-    if (!task) return res.status(404).json({ message: "Task not found" });
+    if (!task) {
+      return errorResponse(res, "Task not found", 404);
+    }
 
-    res.status(200).json(task);
+    return successResponse(res, task, 200);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return errorResponse(res, "Server error", 500);
+  }
+};
+
+// Delete Task
+exports.deleteTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const task = await Task.findOneAndDelete({ _id: id, user: req.user._id });
+
+    if (!task) {
+      return errorResponse(res, "Task not found", 404);
+    }
+
+    return successResponse(res, { message: "Task deleted successfully" }, 200);
+  } catch (err) {
+    console.error(err);
+    return errorResponse(res, "Server error", 500);
   }
 };

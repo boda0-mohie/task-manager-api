@@ -1,32 +1,38 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { errorResponse } = require("../utils/response");
 
-const authMiddleware = async function (req, res, next) {
+const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
+
+    // Check if token exists and formatted correctly
     if (!authHeader || !authHeader.toLowerCase().startsWith("bearer ")) {
-      return res.status(401).json({ msg: "No token, authorization denied" });
+      return errorResponse(res, "No token, authorization denied", 401);
     }
 
     const token = authHeader.split(" ")[1];
 
+    // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // Get user from DB
     const user = await User.findById(decoded.id).select("-password");
-
     if (!user) {
-      return res.status(401).json({ msg: "No token, authorization denied" });
+      return errorResponse(res, "User not found, authorization denied", 401);
     }
 
     req.user = user;
-
     next();
+
   } catch (err) {
+    console.error("Auth Error:", err.message);
+
     if (err.name === "TokenExpiredError") {
-      return res.status(401).json({ message: "Token expired" });
+      return errorResponse(res, "Token expired", 401);
     }
-    console.error(err);
-    res.status(401).json({ message: "Invalid token" });
+
+    return errorResponse(res, "Invalid token", 401);
   }
 };
 

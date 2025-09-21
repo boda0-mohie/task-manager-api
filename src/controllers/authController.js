@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { successResponse, errorResponse } = require('../utils/response');
 
 // Register
 exports.register = async (req, res) => {
@@ -7,12 +8,12 @@ exports.register = async (req, res) => {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return errorResponse(res, "All fields are required", 400);
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Email already exists" });
+      return errorResponse(res, "Email already exists", 400);
     }
 
     const newUser = new User({ name, email, password });
@@ -22,14 +23,14 @@ exports.register = async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.status(201).json({ 
+    return successResponse(res, {
       message: "User registered successfully",
-      token 
-    });
+      token
+    }, 201);
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return errorResponse(res, "Server error", 500);
   }
 };
 
@@ -39,30 +40,30 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+      return errorResponse(res, "All fields are required", 400);
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return errorResponse(res, "Invalid credentials", 401);
     }
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return errorResponse(res, "Invalid credentials", 401);
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
-    res.status(200).json({
+    return successResponse(res, {
       message: "Logged in successfully",
-      token,
+      token
     });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    return errorResponse(res, "Server error", 500);
   }
 };
